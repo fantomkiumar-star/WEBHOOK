@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all domains
 
 # Configuration from Environment Variables
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '7583627340:AAEHt7aE-V7llZsx1y0255KcYz48Dlf1oXM')
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8496519842:AAGNsldvTLntWhcWdyYpNXR_NhAe54zwPDc')
 CHAT_ID = os.environ.get('CHAT_ID', '6939723877')
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET', 'FANTOMDELUXE')
 
